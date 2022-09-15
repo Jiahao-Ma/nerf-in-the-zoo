@@ -1,0 +1,8 @@
+# What's the different between the relu and SIREN?
+    SIREN = sin( omega * (W*x.T + b))
+    RuLU = x if x > 0 ; else 0
+
+    # Implement:
+    SIREN = torch.sin( omega * nn.Linear(x) )
+
+# 
