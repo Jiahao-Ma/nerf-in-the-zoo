@@ -10,13 +10,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from functools import partial
 
-def imgs2gif(imgs, saveName, duration=None, loop=0, fps=None):
-    if fps:
-        duration = 1 / fps
-    duration *= 1000
-    if isinstance(imgs[0], np.ndarray):
-        imgs = [Image.fromarray(img) for img in imgs]
-    imgs[0].save(saveName, save_all=True, append_images=imgs, duration=duration, loop=loop)
+
 
 init_functions = {
         "ones": torch.nn.init.ones_,
@@ -26,16 +20,17 @@ init_functions = {
 }
 
 if __name__ == '__main__':
+    init = 'paper'
+    
     in_feats = 2
     out_feats = 1
     hidden_layers = 3
     hidden_feats = 256
-    model_name = 'siren' # siren or mlp_relu
+    model_name = 'relu' # siren or mlp_relu
 
     target = "intensity"
-    init = 'default'
 
-    epochs = 200
+    epochs = 500
 
     img = np.array(Image.open('dog.png'))
     down_sample_factor = 4
@@ -48,10 +43,10 @@ if __name__ == '__main__':
     dataloader = DataLoader(data, batch_size=len(data), shuffle=False)
     if model_name == 'siren':
         model = SirenImage(hidden_feats=hidden_feats, 
-                           hidden_layers=hidden_layers, 
-                           bias=True, first_omega=30, 
-                           hidden_omega=30,
-                           custum_function_init=init_functions[init])
+                        hidden_layers=hidden_layers, 
+                        bias=True, first_omega=30, 
+                        hidden_omega=30,
+                        custum_function_init=init_functions[init])
 
     elif model_name == 'relu':
         nets = [nn.Linear(in_features=in_feats, out_features=hidden_feats, bias=True), nn.ReLU()]
@@ -108,16 +103,16 @@ if __name__ == '__main__':
             coord.requires_grad_(True)
             pred = model(coord)
             pred_g = (GradientUtils.gradient(pred, coord)
-                                   .norm(dim=-1)
-                                   .squeeze(dim=-1)
-                                   .detach()
-                                   .cpu()
-                     )
+                                .norm(dim=-1)
+                                .squeeze(dim=-1)
+                                .detach()
+                                .cpu()
+                    )
             pred_l = (GradientUtils.laplace(pred, coord)
-                                   .squeeze(dim=-1)
-                                   .detach()
-                                   .cpu()
-                     )
+                                .squeeze(dim=-1)
+                                .detach()
+                                .cpu()
+                    )
 
             coord_abs = batch['coord_abs'].to(torch.long)
             
@@ -155,11 +150,7 @@ if __name__ == '__main__':
                 os.mkdir(f'visualization/{save_path}')
             plt.savefig(f'visualization/{save_path}/{epoch}.jpg')
 
-    imgs = list()
-    for p in os.listdir(f'visualization/{save_path}'):
-        img = Image.open(os.path.join(f'visualization/{save_path}', p))
-        imgs.append(img)
-    imgs2gif(imgs, f'{save_path}.gif', duration=0.033 * 10)
 
-            
+
+        
 
